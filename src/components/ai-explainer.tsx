@@ -5,42 +5,33 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-const mockExplanations: Record<string, { title: string, description: string }> = {
-  "desviación estándar": {
-    title: "Desviación Estándar (σ o s)",
-    description: "Es una medida de la dispersión de los datos con respecto a la media. Una desviación estándar baja indica que los valores de los datos tienden a estar cerca de la media, mientras que una desviación estándar alta indica que los datos están más dispersos en un rango más amplio de valores."
-  },
-  "sesgo": {
-    title: "Sesgo (Bias)",
-    description: "En estadística, el sesgo se refiere a la tendencia de un estadístico a sobrestimar o subestimar sistemáticamente un parámetro poblacional. Por ejemplo, un sesgo de muestreo ocurre si la muestra no es representativa de la población, llevando a conclusiones incorrectas."
-  }
-}
+import { explainConcept, ExplainConceptOutput } from '@/ai/flows/explain-concept';
+import { useToast } from '@/hooks/use-toast';
 
 export function AiExplainer() {
   const [term, setTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [explanation, setExplanation] = useState<{title: string, description: string} | null>(null);
+  const [explanation, setExplanation] = useState<ExplainConceptOutput | null>(null);
+  const { toast } = useToast();
 
-  const handleExplain = () => {
+  const handleExplain = async () => {
     if (!term) return;
     setLoading(true);
     setExplanation(null);
     
-    // Mock AI call
-    setTimeout(() => {
-        const key = term.toLowerCase().trim();
-        const result = mockExplanations[key];
-        if (result) {
-            setExplanation(result);
-        } else {
-            setExplanation({
-                title: `Explicación para "${term}"`,
-                description: "Lo sentimos, no pudimos generar una explicación para este término. Por favor, intenta con otro concepto estadístico como 'desviación estándar' o 'sesgo'."
-            })
-        }
-        setLoading(false);
-    }, 1500);
+    try {
+      const result = await explainConcept({ term });
+      setExplanation(result);
+    } catch (error) {
+      console.error("Error explaining concept:", error);
+      toast({
+          variant: "destructive",
+          title: "Error de IA",
+          description: "No se pudo generar la explicación. Por favor, inténtalo de nuevo.",
+      });
+    }
+
+    setLoading(false);
   };
   
   return (
@@ -61,7 +52,7 @@ export function AiExplainer() {
             onChange={(e) => setTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleExplain()}
             />
-          <Button onClick={handleExplain} disabled={loading}>
+          <Button onClick={handleExplain} disabled={loading || !term}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Explicar'}
           </Button>
         </div>
