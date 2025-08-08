@@ -79,14 +79,14 @@ export function MuestreoProbabilistico() {
               <CardDescription>Se quiere hacer una encuesta a estudiantes de una universidad de 10,000 alumnos sobre la calidad de la comida. Se espera un 95% de confianza (Z=1.96), un error del 5% (e=0.05) y la proporción esperada es desconocida (p=0.5).</CardDescription>
             </CardHeader>
             <CardContent className="font-code">
-                <p>Numerador = 
+                <div className="break-words">Numerador = 
                     {' '}<TraceableNumber explanation="Tamaño de la población (N)">10000</TraceableNumber> * 
                     {' '}<TraceableNumber explanation="Cuadrado del valor Z (1.96²)">3.8416</TraceableNumber> * 
                     {' '}<TraceableNumber explanation="Probabilidad a favor (p)">0.5</TraceableNumber> * 
                     {' '}<TraceableNumber explanation="Probabilidad en contra (q)">0.5</TraceableNumber> = 
                     {' '}<TraceableNumber explanation="Resultado del numerador (10000 * 3.8416 * 0.5 * 0.5)">9604</TraceableNumber>
-                </p>
-                <p>Denominador = 
+                </div>
+                <div className="break-words">Denominador = 
                     {' '}(<TraceableNumber explanation="Error al cuadrado (0.05²)">0.0025</TraceableNumber> * 
                     {' '}<TraceableNumber explanation="N-1 (10000-1)">9999</TraceableNumber>) + 
                     {' '}(<TraceableNumber explanation="Cuadrado del valor Z (1.96²)">3.8416</TraceableNumber> * 
@@ -95,12 +95,12 @@ export function MuestreoProbabilistico() {
                     {' '}<TraceableNumber explanation="Resultado de la primera parte (0.0025 * 9999)">24.9975</TraceableNumber> + 
                     {' '}<TraceableNumber explanation="Resultado de la segunda parte (3.8416 * 0.5 * 0.5)">0.9604</TraceableNumber> = 
                     {' '}<TraceableNumber explanation="Suma de las dos partes (24.9975 + 0.9604)">25.9579</TraceableNumber>
-                </p>
-                 <p className="mt-2">n = 
+                </div>
+                 <div className="mt-2 break-words">n = 
                     {' '}<TraceableNumber explanation="Numerador">9604</TraceableNumber> / 
                     {' '}<TraceableNumber explanation="Denominador">25.9579</TraceableNumber> ≈ 
                     {' '}<TraceableNumber explanation="El tamaño de muestra necesario es aproximadamente 370 estudiantes.">370</TraceableNumber>
-                </p>
+                </div>
             </CardContent>
           </Card>
         </div>
@@ -128,8 +128,8 @@ export function MuestreoProbabilistico() {
               <CardTitle className="text-base">Ejemplo 3: Muestreo Sistemático</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="mb-2">N = <TraceableNumber explanation="Tamaño total de la población dado en el problema.">2000</TraceableNumber>, n = <TraceableNumber explanation="Tamaño de muestra deseado.">100</TraceableNumber></p>
-                <p className="mb-2 font-code">k = 2000 / 100 = <TraceableNumber explanation="Se obtiene dividiendo el tamaño de la población (N=2000) por el tamaño de la muestra (n=100).">20</TraceableNumber></p>
+                <div className="mb-2 break-words">N = <TraceableNumber explanation="Tamaño total de la población dado en el problema.">2000</TraceableNumber>, n = <TraceableNumber explanation="Tamaño de muestra deseado.">100</TraceableNumber></div>
+                <div className="mb-2 font-code break-words">k = 2000 / 100 = <TraceableNumber explanation="Se obtiene dividiendo el tamaño de la población (N=2000) por el tamaño de la muestra (n=100).">20</TraceableNumber></div>
                 <p className="mb-2">Se selecciona aleatoriamente un número entre 1 y 20 (ej: 7).</p>
                 <p><span className="font-semibold">Elementos seleccionados:</span> 7, 27, 47, 67, 87, ...</p>
             </CardContent>
