@@ -1,8 +1,15 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { evaluateStudyDesign, EvaluateStudyDesignOutput } from '@/ai/flows/evaluate-study-design';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Loader2, Sparkles, CheckCircle2, XCircle, FileText, Beaker, HelpCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const techniques = [
     { title: "Entrevista Personal", advantages: "Alta tasa de respuesta, clarificación de dudas.", disadvantages: "Costosa, sesgo del entrevistador.", use: "Temas complejos, poblaciones específicas." },
@@ -12,6 +19,41 @@ const techniques = [
 ];
 
 export function CuestionarioYRecoleccion() {
+    const [studyDesign, setStudyDesign] = useState({
+        poblacion: '',
+        variables: '',
+        muestreo: '',
+        preguntas: '',
+        tecnica: '',
+    });
+    const [loading, setLoading] = useState(false);
+    const [feedback, setFeedback] = useState<EvaluateStudyDesignOutput | null>(null);
+    const { toast } = useToast();
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
+        setStudyDesign((prev) => ({ ...prev, [id]: value }));
+    };
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        setFeedback(null);
+        try {
+            const result = await evaluateStudyDesign(studyDesign);
+            setFeedback(result);
+        } catch (error) {
+            console.error("Error evaluating study design:", error);
+            toast({
+                variant: "destructive",
+                title: "Error de IA",
+                description: "No se pudo procesar la evaluación. Por favor, inténtalo de nuevo.",
+            });
+        }
+        setLoading(false);
+    };
+
+    const isSubmitDisabled = Object.values(studyDesign).some(value => value.trim() === '');
+
     return (
         <Card>
             <CardHeader>
@@ -68,27 +110,73 @@ export function CuestionarioYRecoleccion() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="poblacion">1. Define la población y la muestra</Label>
-                                <Textarea id="poblacion" placeholder="Ej: Población: todos los estudiantes. Muestra: 200 estudiantes." />
+                                <Textarea id="poblacion" placeholder="Ej: Población: todos los estudiantes. Muestra: 200 estudiantes." value={studyDesign.poblacion} onChange={handleInputChange} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="variables">2. Identifica las variables de interés</Label>
-                                <Textarea id="variables" placeholder="Ej: Frecuencia de uso, satisfacción con rutas, costo..." />
+                                <Textarea id="variables" placeholder="Ej: Frecuencia de uso, satisfacción con rutas, costo..." value={studyDesign.variables} onChange={handleInputChange} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="muestreo">3. Propón un método de muestreo</Label>
-                                <Textarea id="muestreo" placeholder="Ej: Muestreo estratificado por facultad..." />
+                                <Textarea id="muestreo" placeholder="Ej: Muestreo estratificado por facultad..." value={studyDesign.muestreo} onChange={handleInputChange}/>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="preguntas">4. Diseña 3 preguntas para el cuestionario</Label>
-                                <Textarea id="preguntas" placeholder="Ej: 1. ¿Con qué frecuencia...?" />
+                                <Textarea id="preguntas" placeholder="Ej: 1. ¿Con qué frecuencia...?" value={studyDesign.preguntas} onChange={handleInputChange}/>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="tecnica">5. Selecciona la técnica de recolección</Label>
-                                <Textarea id="tecnica" placeholder="Ej: Encuesta por correo electrónico..." />
+                                <Textarea id="tecnica" placeholder="Ej: Encuesta por correo electrónico..." value={studyDesign.tecnica} onChange={handleInputChange}/>
                             </div>
-                            <Button className="w-full bg-accent hover:bg-accent/90">Ver Solución Sugerida</Button>
+                            <Button className="w-full bg-accent hover:bg-accent/90" onClick={handleSubmit} disabled={loading || isSubmitDisabled}>
+                                {loading ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                                {loading ? 'Analizando...' : 'Evaluar con IA'}
+                            </Button>
                         </CardContent>
                     </Card>
+                    {feedback && (
+                        <Card className="mt-6 bg-primary/5">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-primary">
+                                    <CheckCircle2 />
+                                    Retroalimentación de la IA
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Alert>
+                                    <HelpCircle className="h-4 w-4" />
+                                    <AlertTitle>1. Población y Muestra</AlertTitle>
+                                    <AlertDescription>{feedback.feedbackPoblacion}</AlertDescription>
+                                </Alert>
+                                <Alert>
+                                    <FileText className="h-4 w-4" />
+                                    <AlertTitle>2. Variables de Interés</AlertTitle>
+                                    <AlertDescription>{feedback.feedbackVariables}</AlertDescription>
+                                </Alert>
+                                <Alert>
+                                    <Beaker className="h-4 w-4" />
+                                    <AlertTitle>3. Método de Muestreo</AlertTitle>
+                                    <AlertDescription>{feedback.feedbackMuestreo}</AlertDescription>
+                                </Alert>
+                                 <Alert>
+                                    <HelpCircle className="h-4 w-4" />
+                                    <AlertTitle>4. Preguntas del Cuestionario</AlertTitle>
+                                    <AlertDescription>{feedback.feedbackPreguntas}</AlertDescription>
+                                </Alert>
+                                <Alert>
+                                    <FileText className="h-4 w-4" />
+                                    <AlertTitle>5. Técnica de Recolección</AlertTitle>
+                                    <AlertDescription>{feedback.feedbackTecnica}</AlertDescription>
+                                </Alert>
+                                <Separator />
+                                <Alert className="border-accent">
+                                    <Sparkles className="h-4 w-4 text-accent" />
+                                    <AlertTitle className="text-accent">Resumen General</AlertTitle>
+                                    <AlertDescription>{feedback.resumenGeneral}</AlertDescription>
+                                </Alert>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </CardContent>
         </Card>
